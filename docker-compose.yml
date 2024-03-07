@@ -1,0 +1,74 @@
+version: '3.8'
+services:
+  #development service
+  development:
+    platform: linux/amd64
+    container_name: unshorten-app
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: base
+    # command: /bin/sh -c "while sleep 1000; do :; done" # It will override the existing CMD it will run forever
+    privileged: true
+    ports:
+      - "7007:7007" #backend host url
+      - "9228:9228" #backend inspect url
+      - "3000:3000" #frontend host url
+      - "9226:9226" #frontend inspect url
+    volumes:
+      - .:/workspace
+    environment:
+      - APP_ENV_FILE_PATH=/workspace/.env
+  #starting BE services
+  backend:
+    platform: linux/amd64
+    container_name: unshorten-backend
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: base
+      args:
+        - ENVIRONMENT=development
+        - APP=backend
+        - AUTHTOKEN=Tgnzu5fYCxt_GDMyEWS6
+    command:
+      [
+        "pnpm",
+        "run",
+        "start:backned:dev",
+        "--",
+        "0.0.0.0:9225"
+      ]
+    ports:
+      - "7007:7000"
+      - "9225:9225"
+    volumes:
+      - .:/workspace
+      - /workspace/node_modules
+      - /workspace/apps/frontend/node_modules
+      - /workspace/apps/backend/node_modules
+    environment:
+      - APP_ENV_FILE_PATH=/workspace/.env
+
+  #starting FE services
+  frontend:
+    platform: linux/amd64
+    container_name: unshorten-frontend
+    depends_on:
+      - backend
+    build:
+      context: .
+      target: base
+      dockerfile: Dockerfile
+      args:
+        - ENVIRONMENT=development
+        - APP=frontend
+        - AUTHTOKEN=Tgnzu5fYCxt_GDMyEWS6
+    command: [ "pnpm", "run", "start:frontend:dev" ]
+    ports:
+      - "3000:3000"
+      - "9226:9225"
+    volumes:
+      - .:/workspace - /app/node_modules - /workspace/apps/frontend/node_modules - /workspace/apps/backend/node_modules
+    environment:
+      - APP_ENV_FILE_PATH=/workspace/.env

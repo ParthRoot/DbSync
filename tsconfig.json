@@ -1,0 +1,15 @@
+{
+    "extends": "./tsconfig.base.json",
+    "compilerOptions": {
+        "moduleResolution": "node",
+        "strictNullChecks": true,
+        "strict": true,
+        "noFallthroughCasesInSwitch": true,
+        "useUnknownInCatchVariables": true,
+        "baseUrl": "src",
+        "outDir": "dist",
+        "composite": true,
+        "paths": {}
+    },
+    "types": ["node", "mocha", "chai", "sinon", "cypress", "jest"]
+}

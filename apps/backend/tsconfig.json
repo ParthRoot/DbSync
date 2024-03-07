@@ -1,0 +1,13 @@
+{
+    "extends": "../../tsconfig.json",
+    "compilerOptions": {
+        "module": "CommonJS",
+        "composite": true,
+        "target": "esnext",
+        "noEmit": false,
+        "outDir": "./dist",
+        "rootDir": "./src",
+        "types": ["node", "jest"]
+    },
+    "exclude": ["./dist/**", "./test", "test/jest.config.ts"]
+}

@@ -1,0 +1,52 @@
+.DS_Store
+**/.DS_Store
+node_modules/
+.pnpm-store
+**/tsconfig.build.tsbuildinfo
+**/tsconfig.tsbuildinfo
+**/node_modules
+.commit/
+.env
+!.env.development
+**/dist
+.test/**
+!.test/.gitignore
+.scannerwork
+**/:memory
+
+
+# compiled output
+/dist
+/node_modules
+
+# Logs
+logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# Tests
+**/coverage
+/.nyc_output
+**/junit.xml
+
+# IDEs and editors
+/.idea
+.project
+.classpath
+.c9/
+*.launch
+.settings/
+*.sublime-workspace
+
+# IDE - VSCode
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+pnpm-lock.yaml

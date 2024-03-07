@@ -1,0 +1,72 @@
+{
+    "name": "klarluft",
+    "version": "1.0.0",
+    "private": true,
+    "author": {
+        "name": "Scaletech",
+        "email": "info@scaletech.xyz"
+    },
+    "workspaces": [
+        "apps/**"
+    ],
+    "engines": {
+        "node": "^18",
+        "npm": "^9",
+        "pnpm": "^8"
+    },
+    "scripts": {
+        "husky": "husky",
+        "precom": "lerna run precommit",
+        "prepare": "husky install",
+        "eslint:check": "eslint \"{shared,apps,libs,test}/**/*.{ts,tsx}\"",
+        "eslint:fix": "pnpm run eslint:check -- --fix",
+        "prettier:check": "prettier --check ./**/*.{tsx,ts,js,jsx,json,*rc}",
+        "prettier:write": "prettier --write ./**/*.{tsx,ts,js,jsx,json,*rc}",
+        "lint:check": "pnpm run prettier:check && pnpm run eslint:check",
+        "lint:fix": "pnpm run prettier:write && pnpm run eslint:fix",
+        "semantic-release": "semantic-release",
+        "update:env": "export APP_ENV_FILE_PATH=$(pwd)/.env",
+        "nx": "nx",
+        "clear:build": "rm -rf ./apps/**/dist ./apps/**/build ./apps/**/.next ./shared/**/dist ./shared/**/build ./**/tsconfig.build.tsbuildinfo ./**/tsconfig.tsbuildinfo",
+        "clear:node_modules": "rm -rf .pnpm-store ./node_modules ./apps/**/node_modules ./shared/**/node_modules",
+        "postnx": "node ./scripts/clearNxCache.mjs || true",
+        "clean": "node ./scripts/removeFiles.mjs",
+        "preinstall": "npx only-allow pnpm",
+        "postinstall": "rm -rf ./node_modules/.ignored",
+        "start:frontend:dev": "pnpm run update:env && pnpm run --filter @scaletech/frontend start",
+        "start:backned:dev": "pnpm run update:env && pnpm run --filter @scaletech/backend start:debug",
+        "build:frontend": "pnpm run --filter @scaletech/frontend build",
+        "build:backend": "pnpm run --filter @scaletech/backend build",
+        "build": "pnpm run update:env && lerna run build",
+        "build:library": "pnpm run update:env && nx run-many --target=build --projects=@scaletech/backend-env,@scaletech/backend-database,@scaletech/backend-log --parallel=3",
+        "test:backend": "pnpm run --filter @scaletech/backend test:ci",
+        "test": "lerna run test",
+        "test:ci": "pnpm install && lerna run test"
+    },
+    "dependencies": {
+        "eslint-plugin-jest": "^27.1.6",
+        "pg-mem": "^2.6.4"
+    },
+    "devDependencies": {
+        "@nrwl/nx-cloud": "^15.0.2",
+        "@types/get-folder-size": "^3.0.1",
+        "@types/jest": "29.4.0",
+        "@types/node": "^18.11.9",
+        "@types/rimraf": "^3.0.2",
+        "get-folder-size": "^4.0.0",
+        "husky": "^8.0.2",
+        "jest": "28.1.3",
+        "lerna": "^6.0.1",
+        "lint-staged": "^13.0.3",
+        "node-notifier": "^10.0.1",
+        "nx": "15.4.2",
+        "rimraf": "^3.0.2",
+        "semantic-release": "^19.0.5",
+        "ts-jest": "28.0.8",
+        "ts-node": "^10.9.1",
+        "typescript": "^4.9.3"
+    },
+    "publishConfig": {
+        "access": "restricted"
+    }
+}

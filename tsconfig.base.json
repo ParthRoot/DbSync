@@ -1,0 +1,46 @@
+{
+    //@tsconfig-reference - https://www.typescriptlang.org/tsconfig
+    "compilerOptions": {
+        // strict mode
+        "strict": true,
+        "alwaysStrict": true,
+        "noImplicitAny": true,
+        "noImplicitThis": true,
+        "strictFunctionTypes": true,
+        "strictBindCallApply": true,
+        "strictNullChecks": true,
+        "strictPropertyInitialization": true,
+        "useUnknownInCatchVariables": true,
+        // no unused code
+        "noUnusedLocals": true,
+        "noUnusedParameters": true,
+        "allowUnusedLabels": false,
+        "allowUnreachableCode": false,
+        // No implicit code
+        "noImplicitOverride": true,
+        "noImplicitReturns": true,
+        //others
+        "noUncheckedIndexedAccess": true,
+        "noPropertyAccessFromIndexSignature": true,
+        "noFallthroughCasesInSwitch": true,
+        "exactOptionalPropertyTypes": true,
+        "forceConsistentCasingInFileNames": true,
+        "allowSyntheticDefaultImports": true,
+        // developer requirements
+        "composite": true,
+        "declaration": true,
+        "esModuleInterop": true,
+        "downlevelIteration": true,
+        "removeComments": true,
+        "emitDecoratorMetadata": true,
+        "experimentalDecorators": true,
+        "lib": ["esnext", "dom"],
+        "target": "esnext",
+        "typeRoots": ["./node_modules/@types"],
+        "moduleResolution": "node",
+        "resolveJsonModule": true,
+        "declarationMap": true,
+        "skipLibCheck": true
+    },
+    "exclude": ["node_modules", "test", "**/dist/**", "**/*spec.ts", "src/**/*.spec.ts"]
+}

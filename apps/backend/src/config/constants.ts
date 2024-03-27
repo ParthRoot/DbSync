@@ -18,3 +18,11 @@ export const VIEW_EXCEL_STYLE = {
     alignment: {},
     protection: {},
 };
+
+export const staticValues = [
+    'Bestand',
+    'BestandReserviert',
+    'BestandBestellt',
+    'BestandVerfuegbar',
+    'EINKAUF',
+];

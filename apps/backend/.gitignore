@@ -5,7 +5,8 @@
 **/tsconfig.tsbuildinfo
 !.env.development
 .env
-
+/erp-mrs-report-logs
+/mrs-legancy-report-logs
 # Logs
 logs
 *.log

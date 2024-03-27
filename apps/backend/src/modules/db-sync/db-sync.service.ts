@@ -4,6 +4,7 @@ import { EntityManager } from 'typeorm';
 import { ApiException, logger } from '../../utils';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { ReportService } from '../report/report.service';
+import { staticValues } from '../../config';
 
 @Injectable()
 export class DbSyncService {
@@ -22,7 +23,7 @@ export class DbSyncService {
      * @returns
      */
     async getDataFromView(entityManager: EntityManager, viewName: string) {
-        const query = `SELECT TOP 5 * FROM ${viewName}`;
+        const query = `SELECT * FROM ${viewName}`;
         const result = await entityManager.query(query);
         return result;
     }
@@ -60,11 +61,16 @@ export class DbSyncService {
             `'${item.BESTELLNR || 'NULL'}'`,
             `'${item.BEMERKUNG || 'NULL'}'`,
             Number(item.ROWADRESSEN || 0),
+            Number(item.Bestand || 0),
+            Number(item.BestandReserviert || 0),
+            Number(item.BestandBestellt || 0),
+            Number(item.BestandVerfuegbar || 0),
+            Number(item.EINKAUF || 0),
             'GETDATE()',
             'GETDATE()',
         ].join(', ');
 
-        const query = `INSERT INTO dbo.ArticlesFromMsoft  (ARTTEXT, KURZBEMERKUNG, BRUTTO, BESTELLNR, BEMERKUNG, ROWADRESSEN, FirstTimeSyncDate, LastSync)
+        const query = `INSERT INTO dbo.ArticlesFromMsoft  (ARTTEXT, KURZBEMERKUNG, BRUTTO, BESTELLNR, BEMERKUNG, ROWADRESSEN, Bestand, BestandReserviert, BestandBestellt, BestandVerfuegbar, EINKAUF, FirstTimeSyncDate, LastSync)
         VALUES (${rowValues})`;
 
         await entityManager.query(query);
@@ -107,16 +113,14 @@ export class DbSyncService {
      * @returns
      */
     async updateDataInMicroServiceArtikelsView(entityManager: EntityManager, erpData: any) {
-        // const setData = `Bezeichnung = '${erpData?.ARTTEXT || 'NULL'}',KURZBEMERKUNG = '${
-        //     erpData?.KURZBEMERKUNG || 'NULL'
-        // }',BRUTTO = ${Number(erpData?.BRUTTO || 0)},BESTELLNR = '${
-        //     erpData?.BESTELLNR || 'NULL'
-        // }',BEMERKUNG = '${erpData?.BEMERKUNG || 'NULL'}',ROWADRESSEN = ${Number(
-        //     erpData?.ROWADRESSEN || 0,
-        // )},UpdatedDate = GETDATE(), LastSync = GETDATE()`;
-
-        const setData = `BRUTTO = ${Number(
-            erpData?.BRUTTO || 0,
+        const setData = `BRUTTO = ${Number(erpData?.BRUTTO || 0)},Bestand = ${Number(
+            erpData?.Bestand || 0,
+        )},BestandReserviert = ${Number(
+            erpData?.BestandReserviert || 0,
+        )},BestandBestellt = ${Number(erpData?.BestandBestellt || 0)},BestandVerfuegbar = ${Number(
+            erpData?.BestandVerfuegbar || 0,
+        )},EINKAUF = ${Number(
+            erpData?.EINKAUF || 0,
         )},UpdatedDate = GETDATE(), LastSync = GETDATE(),isUpdateLegancySync = ${Number(0)}`;
         const whereCondition = `KURZBEMERKUNG = '${erpData?.KURZBEMERKUNG}'`;
         const queryUpdateRecord = `UPDATE dbo.ArticlesFromMsoft SET ${setData} WHERE ${whereCondition}`;
@@ -132,15 +136,11 @@ export class DbSyncService {
      * @returns
      */
     async updateDataInLegancyArtikelTable(entityManager: EntityManager, microServiceData: any) {
-        // const setData = `Bezeichnung = '${microServiceData?.ARTTEXT || 'NULL'}',Artikelnr = '${
-        //     microServiceData?.KURZBEMERKUNG || 'NULL'
-        // }',Preis = ${Number(microServiceData?.BRUTTO || 0)},Herst_Artikelnr = '${
-        //     microServiceData?.BESTELLNR || 'NULL'
-        // }',Herst_Bezeichnung = '${microServiceData?.BEMERKUNG || 'NULL'}',en_LieferantID = ${Number(
-        //     microServiceData?.ROWADRESSEN || 0,
-        // )}`;
-
-        const setData = `Preis = ${Number(microServiceData?.BRUTTO || 0)}`;
+        const setData = `Preis = ${Number(microServiceData?.EINKAUF || 0)}, Reserviert = ${Number(
+            microServiceData?.BestandReserviert || 0,
+        )}, Bestellt = ${Number(microServiceData?.BestandBestellt || 0)}, Bestand = ${Number(
+            microServiceData?.Bestand || 0,
+        )}`;
         const whereCondition = `Artikelnr = '${microServiceData?.KURZBEMERKUNG}'`;
         const queryUpdateRecord = `UPDATE dbo.en_Artikel SET ${setData} WHERE ${whereCondition}`;
         await entityManager.query(queryUpdateRecord);
@@ -158,7 +158,7 @@ export class DbSyncService {
 
             const erpData = await this.getDataFromView(
                 this.cloudEntityManager,
-                'IKlarLuft.ArticlesFromMsoft',
+                'dbo.ArticlesFromMsoft',
             );
 
             if (erpData.length === 0) {
@@ -169,7 +169,7 @@ export class DbSyncService {
             await this.reportService.generateExcel(logsData, 'erp-mrs-report-logs');
             return;
         } catch (error) {
-            throw new ApiException(error, 'Unable to sync data');
+            throw new ApiException(error, 'Unable to sync dacdta');
         }
     }
 
@@ -190,7 +190,16 @@ export class DbSyncService {
                     await this.insertDataInMicroServiceArtikelsView(this.localEntityManager, item);
                     await this.reportService.syncDataLogs(item, logsData, 'INSERT', 'SUCCESS');
                 } else {
-                    if (item?.BRUTTO && data?.BRUTTO && item?.BRUTTO != data?.BRUTTO) {
+                    let flag = false;
+
+                    for (const prop of staticValues) {
+                        if (item?.[prop] && data?.[prop] && item[prop] != data[prop]) {
+                            flag = true;
+                            break;
+                        }
+                    }
+
+                    if (flag) {
                         await this.updateDataInMicroServiceArtikelsView(
                             this.localEntityManager,
                             item,
@@ -210,7 +219,7 @@ export class DbSyncService {
      */
     async microToLegancySync() {
         try {
-            const query = `SELECT TOP 5 * FROM dbo.ArticlesFromMsoft WHERE isUpdateLegancySync = ${Number(
+            const query = `SELECT * FROM dbo.ArticlesFromMsoft WHERE isUpdateLegancySync = ${Number(
                 0,
             )}`;
 
@@ -255,15 +264,13 @@ export class DbSyncService {
                     // const queryUpdateRecord = `UPDATE dbo.ArticlesFromMsoft SET ${setData} WHERE ${whereCondition}`;
                     // await entityManager.query(queryUpdateRecord);
                 } else {
-                    if (item?.BRUTTO && data?.Preis && item?.BRUTTO != data?.Preis) {
-                        await this.updateDataInLegancyArtikelTable(this.legancyEntityManager, item);
+                    await this.updateDataInLegancyArtikelTable(this.legancyEntityManager, item);
 
-                        const setData = `isUpdateLegancySync = ${Number(1)}`;
-                        const whereCondition = `KURZBEMERKUNG = '${item?.KURZBEMERKUNG}'`;
-                        const queryUpdateRecord = `UPDATE dbo.ArticlesFromMsoft SET ${setData} WHERE ${whereCondition}`;
-                        await entityManager.query(queryUpdateRecord);
-                        await this.reportService.syncDataLogs(item, logsData, 'UPDATE', 'SUCCESS');
-                    }
+                    const setData = `isUpdateLegancySync = ${Number(1)}`;
+                    const whereCondition = `KURZBEMERKUNG = '${item?.KURZBEMERKUNG}'`;
+                    const queryUpdateRecord = `UPDATE dbo.ArticlesFromMsoft SET ${setData} WHERE ${whereCondition}`;
+                    await entityManager.query(queryUpdateRecord);
+                    await this.reportService.syncDataLogs(item, logsData, 'UPDATE', 'SUCCESS');
                 }
             }
         } catch (error) {
@@ -271,14 +278,14 @@ export class DbSyncService {
         }
     }
 
-    @Cron(CronExpression.EVERY_12_HOURS)
+    @Cron(CronExpression.EVERY_DAY_AT_2PM)
     erpToMicroServiceSync() {
         this.erpToMicroSync();
         logger.warn('ERP to Microservice synchronization completed successfully.');
         return;
     }
 
-    @Cron(CronExpression.EVERY_12_HOURS)
+    @Cron(CronExpression.EVERY_DAY_AT_3PM)
     microServiceToLegancySync() {
         this.microToLegancySync();
         logger.warn('Microservice to Legancy synchronization completed successfully.');

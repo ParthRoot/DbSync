@@ -190,7 +190,11 @@ export class TestService {
             LIEFNR,
             ROWADRESSEN,
             NAME,
-            KURZBEMERKUNG
+            KURZBEMERKUNG,
+            Bestand,
+            BestandReserviert,
+            BestandBestellt,
+            BestandVerfuegbar
             FROM
             ArticlesFromMsoft; -- Replace YourTableName with the actual table name
         `;

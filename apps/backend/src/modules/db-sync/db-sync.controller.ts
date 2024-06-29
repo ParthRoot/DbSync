@@ -6,6 +6,7 @@ import { BaseResponseDto } from '../../dto';
 export class DbSyncController {
     constructor(private readonly dbSyncService: DbSyncService) {}
 
+    //Hello WOrld
     @Get('erp-to-micro-sync')
     async erpToMicroserviceDataSync() {
         const result = await this.dbSyncService.erpToMicroSync();
